@@ -239,7 +239,7 @@ class APITestCase(unittest.TestCase):
 
     def test_group_message(self):
         result = self.loop.run_until_complete(
-            self.api.at('8gfrJP453y', 0, 'test')
+            self.api.post_group_message('8gfrJP453y', 0, 'test')
         )
         self.assertTrue(result['id'] > 0)
 
