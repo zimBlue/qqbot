@@ -2,7 +2,7 @@ import asyncio
 import os
 
 import botpy
-from botpy.message import Message, GroupMessage
+from botpy.message import Message, GroupMessage, DirectMessage
 from botpy.ext.command_util import Commands
 from botpy import logging, BotAPI
 from botpy.ext.cog_yaml import read
@@ -13,6 +13,13 @@ config = read(os.path.join(os.path.dirname(__file__), "config.yml"))
 class MyClient(botpy.Client):
     async def on_ready(self):
         _log.info(f"robot 「{self.robot.name}」 on_ready!")
+
+    async def on_direct_message_create(self, message: DirectMessage):
+        await self.api.post_dms(
+            guild_id=message.guild_id,
+            content=f"机器人{self.robot.name}收到你的私信了: {message.content}",
+            msg_id=message.id,
+        )
 
     async def on_group_at_message_create(self, message: GroupMessage):
         messageResult = await message._api.post_group_message(
