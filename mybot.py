@@ -20,7 +20,6 @@ cache = redis.Redis(host='127.0.0.1', port=6379, db=2)
 @Commands("出列")
 async def test(api: BotAPI, message: Message, params=None):
     await message.reply(content='莫提斯准备就绪 放马过来吧')
-    await api.post_message(channel_id=message.channel_id, content='莫提斯准备就绪 放马过来吧', msg_id=message.id)
     return True
 
 @Commands("设置活动")
