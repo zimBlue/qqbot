@@ -2,13 +2,13 @@ import os
 import openai
 
 # optional; defaults to `os.environ['OPENAI_API_KEY']`
-openai.api_key = "sk-E2iChmJK9dS5gl1dD477FcA909504dB39d73De184936A1C5"
+openai.api_key = "sk-83JPgDhOFbxVxHhtNNI3enEKjLvYV9S3YgzCunn3rdD4zpiU"
 
 # all client options can be configured just like the `OpenAI` instantiation counterpart
-openai.base_url = "https://free.v36.cm/v1/"
+openai.base_url = "https://api.chatanywhere.tech/v1"
 openai.default_headers = {"x-foo": "true"}
 
-def chat(message, model='gpt-3.5-turbo-0125'):
+def chat(message, model='gpt-4o-mini'):
     completion = openai.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
