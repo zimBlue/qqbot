@@ -5,12 +5,12 @@ import openai
 openai.api_key = "sk-83JPgDhOFbxVxHhtNNI3enEKjLvYV9S3YgzCunn3rdD4zpiU"
 
 # all client options can be configured just like the `OpenAI` instantiation counterpart
-openai.base_url = "https://api.chatanywhere.tech/v1"
+openai.base_url = "https://api.chatanywhere.tech"
 openai.default_headers = {"x-foo": "true"}
 
 def chat(message, model='gpt-4o-mini'):
     completion = openai.chat.completions.create(
-        model="gpt-4o-mini",
+        model=model,
         messages=[
             {
                 "role": "user",
