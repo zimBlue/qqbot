@@ -61,6 +61,7 @@ class MyClient(botpy.Client):
     async def on_ready(self):
         _log.info(f"robot 「{self.robot.name}」 on_ready!")
 
+    # 频道私聊
     async def on_direct_message_create(self, message: DirectMessage):
         handlers = [
             test,
@@ -76,6 +77,7 @@ class MyClient(botpy.Client):
             msg_id=message.id,
         )
 
+    # 频道@
     async def on_at_message_create(self, message: Message):
         handlers = [
             test,
@@ -88,6 +90,7 @@ class MyClient(botpy.Client):
         else:
             await message.reply(content=chat(message.content))
 
+    # 群@
     async def on_group_at_message_create(self, message: GroupMessage):
         await message._api.post_group_message(
             group_openid=message.group_openid,
@@ -95,6 +98,7 @@ class MyClient(botpy.Client):
             msg_id=message.id,
             content=chat(message.content))
 
+    # 私聊
     async def on_c2c_message_create(self, message: C2CMessage):
         await message._api.post_c2c_message(
             openid=message.author.user_openid,
