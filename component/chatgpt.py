@@ -29,5 +29,3 @@ def chat(message, model='gpt-4o-mini'):
         ],
     )
     return completion.choices[0].message.content
-
-print(chat('hello'))
