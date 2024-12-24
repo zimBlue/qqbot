@@ -1,10 +1,8 @@
 import os
 import openai
+from botpy.ext.cog_yaml import read
 
-# optional; defaults to `os.environ['OPENAI_API_KEY']`
-openai.api_key = "sk-83JPgDhOFbxVxHhtNNI3enEKjLvYV9S3YgzCunn3rdD4zpiU"
-
-# all client options can be configured just like the `OpenAI` instantiation counterpart
+openai.api_key = read(os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.yml"))['openai-key']
 openai.base_url = "https://api.chatanywhere.tech"
 openai.default_headers = {"x-foo": "true"}
 
@@ -31,3 +29,5 @@ def chat(message, model='gpt-4o-mini'):
         ],
     )
     return completion.choices[0].message.content
+
+print(chat('hello'))
