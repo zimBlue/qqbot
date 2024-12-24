@@ -10,7 +10,7 @@ openai.default_headers = {"x-foo": "true"}
 
 def chat(message, model='gpt-3.5-turbo-0125'):
     completion = openai.chat.completions.create(
-        model="gpt-3.5-turbo-1106",
+        model="gpt-4o-mini",
         messages=[
             {
                 "role": "user",
