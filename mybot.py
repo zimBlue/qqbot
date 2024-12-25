@@ -18,12 +18,14 @@ _log = logging.get_logger()
 config = read(os.path.join(os.path.dirname(__file__), "config.yml"))
 cache = redis.Redis(host='127.0.0.1', port=6379, db=2)
 
+
 @Commands("出列")
-async def test(message, params = None):
+async def test(message, params=None):
     return '莫提斯准备就绪 放马过来吧'
 
+
 @Commands("设置活动")
-async def set_timeout(message, params = None):
+async def set_timeout(message, params=None):
     if re.match(r'^(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2}).*$', message.content):
         match = re.search(r'.*?设置活动\s+(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$', message.content)
         name = match.group(1)
@@ -43,8 +45,9 @@ async def set_timeout(message, params = None):
     else:
         return '莫提斯听不懂'
 
+
 @Commands("查看活动")
-async def get_timeout(message, params = None):
+async def get_timeout(message, params=None):
     content = "莫提斯定要你涨涨记性\n"
     keys = cache.keys('*')
     if len(keys) == 0:
@@ -53,6 +56,7 @@ async def get_timeout(message, params = None):
     for value in values:
         content += value.decode() + "\n"
     return content
+
 
 async def deal_command(message):
     handlers = [
@@ -68,6 +72,7 @@ async def deal_command(message):
     if content is False:
         content = chat(message.content)
     return content
+
 
 class MyClient(botpy.Client):
     async def on_ready(self):
