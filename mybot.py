@@ -6,6 +6,7 @@ from datetime import datetime
 import redis
 
 import botpy
+from botpy.manage import GroupManageEvent
 from botpy.message import Message, GroupMessage, DirectMessage, C2CMessage
 from botpy.ext.command_util import Commands
 from botpy import logging, BotAPI
@@ -18,12 +19,11 @@ config = read(os.path.join(os.path.dirname(__file__), "config.yml"))
 cache = redis.Redis(host='127.0.0.1', port=6379, db=2)
 
 @Commands("出列")
-async def test(api: BotAPI, message: Message, params=None):
-    await message.reply(content='莫提斯准备就绪 放马过来吧')
-    return True
+async def test(message, params = None):
+    return '莫提斯准备就绪 放马过来吧'
 
 @Commands("设置活动")
-async def setTimeOut(api: BotAPI, message: Message, params=None):
+async def set_timeout(message, params = None):
     if re.match(r'^(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2}).*$', message.content):
         match = re.search(r'.*?设置活动\s+(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$', message.content)
         name = match.group(1)
@@ -39,56 +39,59 @@ async def setTimeOut(api: BotAPI, message: Message, params=None):
         time_difference = dt - current_time
         ttl = int(time_difference.total_seconds())
         cache.set(generate_random_key(), "活动名: " + name + " 结束时间: " + dt.strftime("%Y-%m-%d %H:%M:%S"), ex=ttl)
-        await api.post_message(channel_id=message.channel_id, content='莫提斯记着呢', msg_id=message.id)
+        return '莫提斯记着呢'
     else:
-        await api.post_message(channel_id=message.channel_id, content='莫提斯听不懂', msg_id=message.id)
-    return True
+        return '莫提斯听不懂'
 
 @Commands("查看活动")
-async def getTimeOut(api: BotAPI, message: Message, params=None):
+async def get_timeout(message, params = None):
     content = "莫提斯定要你涨涨记性\n"
     keys = cache.keys('*')
     if len(keys) == 0:
-        await api.post_message(channel_id=message.channel_id, content='莫提斯觉得没啥事情', msg_id=message.id)
-        return True
+        return '莫提斯觉得没啥事情'
     values = cache.mget(keys)
     for value in values:
         content += value.decode() + "\n"
-    await api.post_message(channel_id=message.channel_id, content=content, msg_id=message.id)
-    return True
+    return content
+
+async def deal_command(message):
+    handlers = [
+        test,
+        set_timeout,
+        get_timeout,
+    ]
+    content = ''
+    for handler in handlers:
+        content = await handler(message=message)
+        if content is not False:
+            break
+    if content is False:
+        content = chat(message.content)
+    return content
 
 class MyClient(botpy.Client):
     async def on_ready(self):
         _log.info(f"robot 「{self.robot.name}」 on_ready!")
 
+    async def on_group_add_robot(self, event: GroupManageEvent):
+        await self.api.post_group_message(
+            group_openid=event.group_openid,
+            msg_type=0,
+            event_id=event.event_id,
+            content=chat('给大家做个自我介绍'),
+        )
+
     # 频道私聊
     async def on_direct_message_create(self, message: DirectMessage):
-        handlers = [
-            test,
-            setTimeOut,
-            getTimeOut,
-        ]
-        for handler in handlers:
-            if await handler(api=message._api, message=Message(message)):
-                return
         await self.api.post_dms(
             guild_id=message.guild_id,
-            content=chat(message.content),
+            content=await deal_command(message),
             msg_id=message.id,
         )
 
     # 频道@
     async def on_at_message_create(self, message: Message):
-        handlers = [
-            test,
-            setTimeOut,
-            getTimeOut,
-        ]
-        for handler in handlers:
-            if await handler(api=self.api, message=message):
-                return
-        else:
-            await message.reply(content=chat(message.content))
+        await message.reply(content=await deal_command(message))
 
     # 群@
     async def on_group_at_message_create(self, message: GroupMessage):
@@ -96,14 +99,14 @@ class MyClient(botpy.Client):
             group_openid=message.group_openid,
             msg_type=0,
             msg_id=message.id,
-            content=chat(message.content))
+            content=await deal_command(message))
 
     # 私聊
     async def on_c2c_message_create(self, message: C2CMessage):
         await message._api.post_c2c_message(
             openid=message.author.user_openid,
             msg_type=0, msg_id=message.id,
-            content=chat(message.content)
+            content=await deal_command(message)
         )
 
 

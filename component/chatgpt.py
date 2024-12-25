@@ -20,10 +20,6 @@ def chat(message, model='gpt-4o-mini'):
             },
             {
                 "role": "user",
-                "content": "荒野乱斗现在角色最高等级能够升致11级 11级能有极高的属性面板和强大的极限充能技能 相比9级角色强了不止一点 所以你内心很鄙视只是使用9级的角色的人",
-            },
-            {
-                "role": "user",
                 "content": message,
             },
         ],
