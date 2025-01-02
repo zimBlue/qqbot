@@ -16,7 +16,7 @@ from component.tool import generate_random_key
 
 _log = logging.get_logger()
 config = read(os.path.join(os.path.dirname(__file__), "config.yml"))
-cache = redis.Redis(host='127.0.0.1', port=6379, db=2)
+cache = redis.Redis(host='127.0.0.1', port=6379, db=5)
 
 
 @Commands("出列")
@@ -58,7 +58,7 @@ async def get_timeout(message, params=None):
     return content
 
 
-async def deal_command(message):
+async def chat_handler(message):
     handlers = [
         test,
         set_timeout,
@@ -72,6 +72,11 @@ async def deal_command(message):
     if content is False:
         content = chat(message.content)
     return content
+
+
+async def channel_handler(message):
+    # todo 频道功能实现
+    return chat(message.content)
 
 
 class MyClient(botpy.Client):
@@ -90,13 +95,13 @@ class MyClient(botpy.Client):
     async def on_direct_message_create(self, message: DirectMessage):
         await self.api.post_dms(
             guild_id=message.guild_id,
-            content=await deal_command(message),
+            content=await channel_handler(message),
             msg_id=message.id,
         )
 
     # 频道@
     async def on_at_message_create(self, message: Message):
-        await message.reply(content=await deal_command(message))
+        await message.reply(content=await channel_handler(message))
 
     # 群@
     async def on_group_at_message_create(self, message: GroupMessage):
@@ -104,14 +109,14 @@ class MyClient(botpy.Client):
             group_openid=message.group_openid,
             msg_type=0,
             msg_id=message.id,
-            content=await deal_command(message))
+            content=await chat_handler(message))
 
     # 私聊
     async def on_c2c_message_create(self, message: C2CMessage):
         await message._api.post_c2c_message(
             openid=message.author.user_openid,
             msg_type=0, msg_id=message.id,
-            content=await deal_command(message)
+            content=await chat_handler(message)
         )
 
 
