@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 from datetime import datetime
+import pytz
 
 import redis
 
@@ -12,7 +13,7 @@ from botpy.ext.command_util import Commands
 from botpy import logging, BotAPI
 from botpy.ext.cog_yaml import read
 from component.chatgpt import chat
-from component.tool import generate_random_key
+from component.tool import md5
 
 _log = logging.get_logger()
 config = read(os.path.join(os.path.dirname(__file__), "config.yml"))
@@ -26,21 +27,19 @@ async def test(message, params=None):
 
 @Commands("设置活动")
 async def set_timeout(message, params=None):
-    if re.match(r'^(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2}).*$', message.content):
-        match = re.search(r'.*?设置活动\s+(.*?)\s+(\d{1,4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$', message.content)
+    if re.match(r'^.*?\s+\d{1,4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}.*$', params):
+        match = re.search(r'(.*?)\s+(\d{1,4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2})$', params)
         name = match.group(1)
-        year = int(match.group(2))
-        month = int(match.group(3))
-        day = int(match.group(4))
-        hour = int(match.group(5))
-        minute = int(match.group(6))
-        second = int(match.group(7))
-
-        dt = datetime(int(year), int(month), int(day), int(hour), int(minute), int(second))
+        dt = datetime.strptime(match.group(2), "%Y-%m-%d %H:%M:%S")
         current_time = datetime.now()
         time_difference = dt - current_time
         ttl = int(time_difference.total_seconds())
-        cache.set(generate_random_key(), "活动名: " + name + " 结束时间: " + dt.strftime("%Y-%m-%d %H:%M:%S"), ex=ttl)
+        if ttl <= 0:
+            return '莫提斯觉得你设置的时间已经过去了'
+        key = md5(name)
+        if cache.exists(key):
+            return '莫提斯觉得你设置的活动已经存在了'
+        cache.set(key, "活动名: " + name + " 结束时间: " + dt.strftime("%Y-%m-%d %H:%M:%S"), ex=ttl)
         return '莫提斯记着呢'
     else:
         return '莫提斯听不懂'
